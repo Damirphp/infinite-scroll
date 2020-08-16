@@ -4,6 +4,10 @@ const loader = document.getElementById('loader')
 
 let photosArray = [];
 
+let ready = false;
+let imagesLoaded = 0;
+let totalImages = 0;
+
 // Unslash API
 const count = 10;
 const apiKey = 'DHVwF4XWtUpRnxU-AQi4dBzJKnQ3Ar7Oxaw0AqYTB0Y';
@@ -16,14 +20,22 @@ function setAttributes(element, attributes) {
     }
 }
 
+// Check is all images were loaded
+function imageLoaded() {
+    imagesLoaded++;
+    if (imagesLoaded === totalImages) {
+        ready = true;
+        loader.hidden = true;
+    }
+}
+
 function dispalyPhotos() {
+    imagesLoaded = 0;
+    totalImages = photosArray.length;
+
     photosArray.forEach((photo) => {
         // Create <a> to link to Unslash 
         const anhor = document.createElement('a');
-        // anhor.setAttribute('href', photo.links.html)
-        // anhor.setAttribute('target', '_blank');
-
-        // Set <a> attributes with helper function
         setAttributes(anhor, {
             href: photo.links.html,
             target: '_blank'
@@ -31,16 +43,13 @@ function dispalyPhotos() {
 
         // Create <img> for photo
         const img = document.createElement('img');
-        // img.setAttribute('src', photo.urls.regular)
-        // img.setAttribute('alt', photo.alt_description);
-        // img.setAttribute('title', photo.alt_description)
-
-        // Set <img> attributes with helper function
         setAttributes(img, {
             src: photo.urls.regular,
             alt: photo.alt_description,
             title: photo.alt_description
         });
+        // Event listener, check when each is finished loading
+        img.addEventListener('load', imageLoaded());
 
         // Put <img> inside <a>, then put both inside imageContainer element
         anhor.appendChild(img);
@@ -60,7 +69,10 @@ async function getPhotoFromApi() {
 
 // Check to see if scrolling near bottom of page, load more photo
 window.addEventListener('scroll', () => {
-    console.log('scrolled')
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000 && ready) {
+        ready = false;
+        getPhotoFromApi();
+    }
 })
 
 // On load
